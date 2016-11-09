@@ -256,13 +256,28 @@ def do_if_form(expressions, env):
 def do_and_form(expressions, env):
     """Evaluate a short-circuited and form."""
     # BEGIN PROBLEM 13
-    "*** REPLACE THIS LINE ***"
+    if expressions is nil:
+        return True
+    expression = scheme_eval(expressions.first, env)
+    if scheme_falsep(expression):
+        return False
+    elif expressions.second is nil:
+        return expression
+    return do_and_form(expressions.second, env)
     # END PROBLEM 13
 
 def do_or_form(expressions, env):
     """Evaluate a short-circuited or form."""
     # BEGIN PROBLEM 13
-    "*** REPLACE THIS LINE ***"
+    if expressions is nil:
+        return False
+    expression = scheme_eval(expressions.first, env)
+    if scheme_truep(expression):
+        return expression
+    elif expressions.second is nil:
+        return False
+    return do_or_form(expressions.second, env)
+
     # END PROBLEM 13
 
 def do_cond_form(expressions, env):
@@ -278,9 +293,15 @@ def do_cond_form(expressions, env):
             test = scheme_eval(clause.first, env)
         if scheme_truep(test):
             # BEGIN PROBLEM 14
-            "*** REPLACE THIS LINE ***"
+            if clause.second is nil:
+                return test
+            elif len(clause.second) > 1:
+                return eval_all(clause.second, env)
+            else:
+                return scheme_eval(clause.second.first, env)
             # END PROBLEM 14
         expressions = expressions.second
+    return None
 
 def do_let_form(expressions, env):
     """Evaluate a let form."""
@@ -296,7 +317,14 @@ def make_let_frame(bindings, env):
     if not scheme_listp(bindings):
         raise SchemeError('bad bindings list in let form')
     # BEGIN PROBLEM 15
-    "*** REPLACE THIS LINE ***"
+    formals, values = nil, nil
+    while bindings is not nil:
+        binding = bindings.first
+        check_form(binding, 2, 2)
+        formals, values = Pair(binding.first, formals), Pair(scheme_eval(binding.second.first, env), values)
+        bindings = bindings.second
+    check_formals(formals)
+    return env.make_child_frame(formals, values)
     # END PROBLEM 15
 
 SPECIAL_FORMS = {
@@ -375,7 +403,8 @@ class MuProcedure(UserDefinedProcedure):
         self.body = body
 
     # BEGIN PROBLEM 16
-    "*** REPLACE THIS LINE ***"
+    def make_call_frame(self, args, env):
+        return env.make_child_frame(self.formals, args)
     # END PROBLEM 16
 
     def __str__(self):
@@ -391,7 +420,7 @@ def do_mu_form(expressions, env):
     formals = expressions.first
     check_formals(formals)
     # BEGIN PROBLEM 16
-    "*** REPLACE THIS LINE ***"
+    return MuProcedure(formals, expressions.second)
     # END PROBLEM 16
 
 SPECIAL_FORMS['mu'] = do_mu_form
